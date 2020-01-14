@@ -1,16 +1,17 @@
-cmake_minimum_required (VERSION 2.6)
-project (Tools)
+cmake_minimum_required( VERSION 2.6 )
+set( PROJECT_NAME Tools )
 
 # The version number.
-set (Tools_VERSION_MAJOR 1)
-set (Tools_VERSION_MINOR 0)
+set( ${CMAKE_PROJECT_NAME}_VERSION_MAJOR 1 )
+set( ${CMAKE_PROJECT_NAME}_VERSION_MINOR 0 )
 
 ###########
 ### Library
 ###########
-add_library (Tools INTERFACE)
+message( "Preparing library : " ${PROJECT_NAME} )
+add_library( ${PROJECT_NAME} INTERFACE )
 target_include_directories(
-    Tools 
+    ${PROJECT_NAME}
 INTERFACE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

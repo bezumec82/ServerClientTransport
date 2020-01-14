@@ -7,9 +7,10 @@
 
 namespace UnixSocket
 {
-    using IoService = ::boost::asio::io_service;
+    
 class Server
 {
+    using IoService = ::boost::asio::io_service;
 public :
     Server()=delete;
     explicit Server( IoService& io_service )
@@ -20,10 +21,11 @@ public :
 
 class Client
 {
+    using IoService = ::boost::asio::io_service;
 public :
     Client()=delete;
     explicit Client( IoService& io_service )
-    { 
+    {
         PRINTF(GRN, "Client started.\n");
     }
 };

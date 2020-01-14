@@ -1,7 +1,5 @@
 cmake_minimum_required( VERSION 2.6 )
-set( PROJECT_NAME UnixSocket )
-
-message( "Compile flags : " ${CMAKE_CXX_FLAGS} )
+set( PROJECT_NAME LocalHost )
 ###########
 ### Library
 ###########
@@ -21,7 +19,7 @@ target_link_libraries(
     ${PROJECT_NAME}
 LINK_PRIVATE
     Tools
-)
+) 
 
 ########
 ### Test
