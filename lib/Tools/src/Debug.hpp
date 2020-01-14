@@ -31,37 +31,38 @@
     #define BLINK    ""
 #endif
 
-
-#define __FILENAME__                                                        \
+#ifndef NDEBUG
+# define __FILENAME__                                                       \
                     (strrchr(__FILE__, '/') ?                               \
                                             strrchr(__FILE__, '/') + 1 :    \
                                             __FILE__)
-#define PRINTF(color, text, ...) \
+
+# define PRINTF(color, text, ...)                                           \
             printf(color"%-20.20s %-20.20s #%-5i: " text "" NORM,           \
             __FILENAME__, __FUNCTION__, __LINE__ ,                          \
             ##__VA_ARGS__);
 
 /* Additional line */
-#define PRINTF_NL(color, text, ...)                                         \
+# define PRINTF_NL(color, text, ...)                                        \
                     printf(color"%49s " text "" NORM,"", ##__VA_ARGS__);
 
-#define PRINT_ERR(text, ...)                                                \
+# define PRINT_ERR(text, ...)                                               \
         printf(RED"%-20.20s %-20.20s #%-5i: ERROR: " text "" NORM,          \
                __FILENAME__, __FUNCTION__, __LINE__,                        \
                ##__VA_ARGS__);
 
-#define PRINT_WARN(text, ...)                                               \
+# define PRINT_WARN(text, ...)                                              \
         printf(YEL"%-20.20s %-20.20s #%-5i: WARNING: " text "" NORM,        \
                __FILENAME__, __FUNCTION__, __LINE__,                        \
                ##__VA_ARGS__);
 
-#define FPRINTF                                                             \
+# define FPRINTF                                                            \
         fprintf(stderr, RED"%-20.20s %-20.20s #%-5i: ERROR: '%s'.\r\n"      \
                     "%49s errno : %i.\r\n" NORM,                            \
                     __FILENAME__, __FUNCTION__, __LINE__,                   \
                     strerror(errno) , "", errno );
 
-#define FPRINTF_EXT(text, ...)                                              \
+# define FPRINTF_EXT(text, ...)                                             \
         fprintf(stderr, RED"%-20.20s %-20.20s #%-5i: ERROR: '%s'.\r\n"      \
                     "%49s errno : %i.\r\n"                                  \
                     "%49s " text "" NORM,                                   \
@@ -69,8 +70,11 @@
                     "", errno ,                                             \
                     "", ##__VA_ARGS__ );
 
-#define PRINT_COND(condition, color, text, ... )                            \
+# define PRINT_COND(condition, color, text, ... )                           \
         if (condition) { printf(color "" text "" NORM, ##__VA_ARGS__); }
-
+#else
+# define PRINTF(color, text, ...) 
+# define PRINTF_NL(color, text, ...) 
+#endif
 
 #endif /* DEBUG_HPP */
