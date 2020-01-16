@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 2.6 )
-set( PROJECT_NAME LocalHost )
+set( PROJECT_NAME TcpIp )
 ###########
 ### Library
 ###########

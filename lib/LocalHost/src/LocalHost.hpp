@@ -1,10 +1,8 @@
 #ifndef LOCAL_HOST_HPP
 #define LOCAL_HOST_HPP
 
-namespace LocalHost
-{
+#include <boost/asio.hpp>
 
 
-}; //end namespace LocalHost
 
 #endif /* LOCAL_HOST_HPP */
