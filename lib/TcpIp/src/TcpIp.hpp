@@ -27,12 +27,14 @@ namespace TcpIp
     
     using SessionShptr = ::std::shared_ptr< Session >;
     using Sessions = ::std::vector< SessionShptr >;
+
     class Session
     {
     public:
-        Session(IoService& io_service, Server* parent)
+        Session(IoService& io_service, Server * parent)
             : m_ioService_ref( io_service ),
-            m_socket( io_service )
+            m_socket( io_service ),
+            m_parent_ptr( parent )
         { }
 
         Socket& getSocket( void )
@@ -47,7 +49,7 @@ namespace TcpIp
     private:
         IoService& m_ioService_ref;
         Socket m_socket;
-
+        Server * m_parent_ptr;
     };
 
     class Server
@@ -82,8 +84,6 @@ namespace TcpIp
         ::std::thread m_worker;
         Sessions m_sessions;
     };
-
-
 }; //end namespace LocalHost
 
 #endif /* TCP_IP_HPP */

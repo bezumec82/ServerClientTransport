@@ -1,22 +1,24 @@
-cmake_minimum_required( VERSION 2.6 )
-set( PROJECT_NAME UnixSocket )
+cmake_minimum_required( VERSION 3.14 )
 
-message( "Compile flags : " ${CMAKE_CXX_FLAGS} )
+set( PROJECT_NAME UnixSocketTransport )
 ###########
 ### Library
 ###########
-message( "Preparing library : " ${PROJECT_NAME} )
-file(GLOB CPP_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+message( "Configuring library : " ${PROJECT_NAME} )
+file( GLOB CXX_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+)
 add_library(
     ${PROJECT_NAME}
 STATIC
-    ${CPP_FILES}
+    ${CXX_FILES}
 )
+
 target_include_directories(
     ${PROJECT_NAME}
 PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
 target_link_libraries(
     ${PROJECT_NAME}
 LINK_PRIVATE
@@ -26,14 +28,18 @@ LINK_PRIVATE
 ########
 ### Test
 ########
-message( "Preparing executable : " ${PROJECT_NAME}Test.out )
+message( "Configuring example : " ${PROJECT_NAME}Test.out )
+include_directories( ${Boost_INCLUDE_DIR} )
+message( "Located boost libs : " ${Boost_LIBRARIES} )
+file( GLOB CXX_FILES ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp )
 add_executable(
-    ${PROJECT_NAME}Test.out 
-    ${CMAKE_CURRENT_SOURCE_DIR}/test/main.cpp 
+    ${PROJECT_NAME}Test.out
+    ${CXX_FILES}
 )
-target_link_libraries (
+target_link_libraries(
     ${PROJECT_NAME}Test.out
 LINK_PRIVATE
     ${PROJECT_NAME}
     Tools
+    ${Boost_LIBRARIES}
 )

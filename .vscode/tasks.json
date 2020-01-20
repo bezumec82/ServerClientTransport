@@ -5,6 +5,7 @@
             "label": "build",
             "type": "shell",
             "command": "${workspaceRoot}/build.sh",
+            "args": [ "UnixSocketTransportTest.out" ],
             "group": {
                 "kind": "build",
                 "isDefault": true

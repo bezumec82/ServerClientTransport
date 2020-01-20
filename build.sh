@@ -86,31 +86,18 @@ cmake \
 ../
 
 echo -e "${CYN}Running make${NORM}"
-make DESTDIR=${PROJECT_PTH}/out
+make -j8 DESTDIR=${PROJECT_PTH}/out
 
 #########
 ### DEBUG
 #########
-export RMT_IP=192.168.1.72
-export RMT_USR=pi
-export RMT_HOST_PASS=pi
-export RMT_HOST=${RMT_USR}@${RMT_IP}
-export TGT_EXE_PTH=/home/pi/remote-debug
-export GDB_PORT=2345
-# One at a time !
-export EXECTBL=UnixSocketTransportTest.out
-
 if ls -1qA "${PROJECT_PTH}/out" | grep -q .
 then
-echo -e "${GRN}Build success. Copying ${EXECTBL} to the Raspberry : ${TGT_EXE_PTH}.${NORM}"
-sshpass -p "${RMT_HOST_PASS}" \
-scp ${PROJECT_PTH}/out/${EXECTBL} ${RMT_HOST}:${TGT_EXE_PTH}/${EXECTBL}
-
-echo -e "${GRN}Starting GDB server with port ${GDB_PORT}${NORM}"
-sshpass -p "${RMT_HOST_PASS}" ssh -tt ${RMT_HOST} << EOF
-killall -9 gdbserver && killall -9 gdbserver
-gdbserver :${GDB_PORT} ${TGT_EXE_PTH}/${EXECTBL}
-EOF
+# Take executable name from cmd args
+    EXECTBL=$1
+    cd ..
+    echo -e "${GRH}Build success.${NORM}"
+    ${PROJECT_PTH}/startDebug.sh ${EXECTBL}
 else
-    echo -e "${RED}Build failure${NORM}"
+    echo -e "${RED}Build failure.${NORM}"
 fi

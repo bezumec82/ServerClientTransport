@@ -1,4 +1,5 @@
 cmake_minimum_required( VERSION 2.6 )
+
 project( Transport )
 
 set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
@@ -9,7 +10,7 @@ if( "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" )
 endif ()
 
 # set( CMAKE_VERBOSE_MAKEFILE ON )
-set( CMAKE_COLOR_MAKEFILE ON )
+# set( CMAKE_COLOR_MAKEFILE ON )
 
 # Boost
 message( "Provided BOOSTROOT : " ${BOOSTROOT} )

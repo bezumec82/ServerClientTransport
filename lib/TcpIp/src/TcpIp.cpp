@@ -5,12 +5,12 @@
 TcpIp::Server::setConfig( Config&& cfg ) /* Save config */
 {
     boost::system::error_code error;
-    m_config = ::std::move(cfg);
+    m_config = ::std::move( cfg );
     auto const address = 
         boost::asio::ip::make_address( m_config.m_ipAddress, error );
-    if (error)
+    if( error )
     {
-        PRINT_ERR( "%s", error.message().c_str()) ;
+        PRINT_ERR( "%s", error.message().c_str() );
         return Result::WRONG_IP_ADDRESS;
     }
     m_endpoint_uptr = ::std::make_unique<Endpoint>( address, m_config.m_portNum );
@@ -34,11 +34,11 @@ void TcpIp::Server::start( void )
 void TcpIp::Server::accept( void )
 {
 #if (1)
-    SessionShptr session_shptr = ::std::make_shared< Session >(m_ioService, this); 
+    SessionShptr session_shptr = ::std::make_shared< Session >( m_ioService, this ); 
     m_acceptor_uptr->async_accept(session_shptr->getSocket(),
         [&, session_shptr]( ErrCode error )
         {
-            if (!error)
+            if( !error )
             {
                 PRINTF( GRN, "Client accepted.\n" );
                 m_sessions.push_back( session_shptr );
@@ -55,9 +55,9 @@ void TcpIp::Server::accept( void )
     m_acceptor_uptr->async_accept(
         [this]( ErrCode error, Socket socket)
         {
-            if (!error)
+            if( !error )
             {
-            std::make_shared<Session>(std::move(socket))->start();
+            std::make_shared< Session >( std::move( socket ) )->start();
             }
 
             accept();
