@@ -1,7 +1,7 @@
 #ifndef UNIX_SOCKET_CLIENT_HPP
 #define UNIX_SOCKET_CLIENT_HPP
 
-#include "UnixSocket.hpp"
+#include "UnixSocket.h"
 
 namespace UnixSocket
 {

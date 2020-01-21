@@ -1,12 +1,10 @@
 #ifndef UNIX_SOCKET_SERVER_HPP
 #define UNIX_SOCKET_SERVER_HPP
 
-#include "UnixSocket.hpp"
+#include "UnixSocket.h"
 
 namespace UnixSocket
 {
-
-
 /* Wrapper around 'Session.send' */
 template< typename Data >
 Result Server::send( const ::std::string& clientName, Data&& data )
@@ -25,7 +23,6 @@ Result Server::send( const ::std::string& clientName, Data&& data )
         return Result::NO_SUCH_ADDRESS;
     }
 }
-
 } //end namespace UnixSocket
 
 #endif /* UNXI_SOCKET_SERVER_HPP */

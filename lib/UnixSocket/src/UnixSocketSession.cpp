@@ -1,4 +1,4 @@
-#include "UnixSocket.hpp"
+#include "UnixSocket.h"
 
 using namespace UnixSocket;
 
@@ -23,7 +23,7 @@ void Server::Session::recv( SessionShptr self )
         if( error )
         {
             PRINT_ERR( "Error when reading : %s\n", error.message().c_str());
-            m_socket.close();
+            m_socket.shutdown( Socket::shutdown_receive );
             return;
         }
         if( ! m_isAuthenicated.load() )

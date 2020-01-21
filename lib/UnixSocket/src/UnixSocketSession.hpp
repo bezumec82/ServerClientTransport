@@ -1,7 +1,7 @@
 #ifndef UNIX_SOCKET_SESSION_HPP
 #define UNIX_SOCKET_SESSION_HPP
 
-#include "UnixSocket.hpp"
+#include "UnixSocket.h"
 
 namespace UnixSocket
 {

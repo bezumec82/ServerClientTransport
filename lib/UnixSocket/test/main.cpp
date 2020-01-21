@@ -100,10 +100,9 @@ int main( int , char** )
 
         ::std::this_thread::sleep_for( ::std::chrono::milliseconds(1000) );
         server.send< ::std::string >( 
-                    ::std::string{ "syncClient" },  
+                    ::std::string{ "syncClient" },
                     ::std::string{ "<body>Data for asyncClient</body>" } );
         ::std::cout << "--" << ::std::endl;
-
     }
     return 0;
 }
