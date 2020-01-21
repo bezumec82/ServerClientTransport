@@ -15,7 +15,10 @@ Cross compilation is hidden from cmake of the project. All flags are passed insi
 Name of the executable (without path) should be passed as sole argument to the 'startDebug.sh'.
 
 Inside 'build.sh', there are variables that provides path to some necessary facilities :
+
 RPI_PTH - where everething is places.
+
 PRI_TOOLS_PTH - path to compiler and sysroot.
+
 Look here for source here : [raspberry-tools](https://github.com/raspberrypi/tools).
 BOOST_ROOT - path to the boost library. I've avoided of using of compilable part.

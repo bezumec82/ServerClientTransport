@@ -34,10 +34,11 @@ namespace TcpIp
     using Acceptor = ::boost::asio::ip::tcp::acceptor;
     using AcceptorUptr = ::std::unique_ptr<Acceptor>;
 
-    using BufferShPtr = ::std::shared_ptr< ::std::vector< byte > >;
+    using Buffer = ::std::vector< byte >;
+    using BufferShPtr = ::std::shared_ptr< Buffer >;
     
     /* Who and what */
-    using RecvCallBack  = ::std::function< void( ::std::string, BufferShPtr ) >;
+    using RecvCallBack  = ::std::function< void( ::std::string, Buffer ) >;
     /* How many was really send - POSIX style */
     using SendCallBack  = ::std::function< void( ::std::size_t ) >;
 
@@ -91,13 +92,13 @@ namespace TcpIp
         }; //end class Session
 
         /*--- Methods ---*/
+    public:
         Result setConfig( Config&& );
         Config& getConfig( void )
         {
             return m_config;
         }
         Result start( void );
-        void stop( void );
         /* Send function is callable, recv is event. */
         template< typename Data >
         Result send( const ::std::string&, Data&& );
@@ -118,7 +119,7 @@ namespace TcpIp
         ::std::atomic<bool> m_isConfigured{false};
         IpAddress m_address;
     };
-}; //end namespace LocalHost
+}; //end namespace TcpIp
 
 #include "TcpIpServer.hpp"
 #include "TcpIpSession.hpp"
