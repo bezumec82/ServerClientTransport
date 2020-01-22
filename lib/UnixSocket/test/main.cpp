@@ -5,11 +5,12 @@
 
 #include "UnixSocket.h"
 
-void serverReadCallBack( ::std::string data )
+void serverReadCallBack( ::std::string clientName, ::std::string data )
 {
     ::std::cout << __func__ << " : "
-                << "Server recieved data : " 
-                << data << ::std::endl;
+                << "Server received data : " 
+                << data << '\n'
+                << "From client : " << clientName << ::std::endl;
 }
 
 void serverSendCallBack( ::std::size_t sent_bytes )
@@ -20,10 +21,11 @@ void serverSendCallBack( ::std::size_t sent_bytes )
                 << ::std::endl;
 }
 
-void clientReadCallBack( ::std::string data )
+/*                       Unification : */
+void clientReadCallBack( ::std::string , ::std::string data )
 {
     ::std::cout << __func__ << " : "
-                << "Client recieved data : " 
+                << "Client received data : " 
                 << data << ::std::endl;
 }
 
@@ -35,17 +37,26 @@ void clientSendCallBack( ::std::size_t sent_bytes )
                 << ::std::endl;
 }
 
+/* "Sometimes old methods are better." Mr.World. American Gods. */
+#define FILE_TO_USE         "/tmp/UnixSocketServer"
+#define BODY_DELIMITER      "body"
+#define AUTH_DELIMITER      "auth"
+#define SYNC_CLIENT_NAME    "syncClient"
+#define ASYNC_CLIENT_NAME   "asyncClient"
+#define TRANSACTION_DELAY   ::std::chrono::milliseconds(1000)
+
+
 int main( int , char** )
 {
     /* Create and start server */
     ::UnixSocket::Server server;
     ::UnixSocket::Server::Config config = 
     {
-        .m_recv_cb = serverReadCallBack,
-        .m_send_cb = serverSendCallBack,
-        .m_address = "/tmp/UnixSocketServer",
-        .m_delimiter = "body",
-        .m_authKey = "auth"
+        .m_recvCallBack = serverReadCallBack,
+        .m_sendCallBack = serverSendCallBack,
+        .m_address      = FILE_TO_USE,
+        .m_delimiter    = BODY_DELIMITER,
+        .m_authKey      = AUTH_DELIMITER
     };
     server.setConfig( ::std::move( config ) ); /* No way to change config. */
     server.start();
@@ -54,12 +65,12 @@ int main( int , char** )
     ::UnixSocket::Client asyncClient;
     ::UnixSocket::Client::Config asyncConfig =
     {
-        .m_recv_cb = clientReadCallBack,
-        .m_send_cb = clientSendCallBack,
-        .m_address = "/tmp/UnixSocketServer",
-        .m_delimiter = "body",
-        .m_authKey = "auth",
-        .m_clientName = "asyncClient",
+        .m_recvCallBack = clientReadCallBack,
+        .m_sendCallBack = clientSendCallBack,
+        .m_address      = FILE_TO_USE,
+        .m_delimiter    = BODY_DELIMITER,
+        .m_authKey      = AUTH_DELIMITER,
+        .m_clientName   = ASYNC_CLIENT_NAME,
         /* Client without connection seems useless */
         .m_conType = ::UnixSocket::Client::ConnectType::ASYNC_CONNECT
     };
@@ -70,12 +81,12 @@ int main( int , char** )
     ::UnixSocket::Client syncClient;
     ::UnixSocket::Client::Config syncConfig =
     {
-        .m_recv_cb = clientReadCallBack,
-        .m_send_cb = clientSendCallBack,
-        .m_address = "/tmp/UnixSocketServer",
-        .m_delimiter = "body",
-        .m_authKey = "auth",
-        .m_clientName = "syncClient",
+        .m_recvCallBack = clientReadCallBack,
+        .m_sendCallBack = clientSendCallBack,
+        .m_address      = FILE_TO_USE,
+        .m_delimiter    = BODY_DELIMITER,
+        .m_authKey      = AUTH_DELIMITER,
+        .m_clientName   = SYNC_CLIENT_NAME,
         /* Client without connection seems useless */
         .m_conType = ::UnixSocket::Client::ConnectType::SYNC_CONNECT
     };
@@ -84,24 +95,24 @@ int main( int , char** )
 
     while( true )
     {
-        ::std::this_thread::sleep_for( ::std::chrono::milliseconds(1000) );
-        asyncClient.send( ::std::string{ "<body>Data from asyncClient</body>" } );
+        ::std::this_thread::sleep_for( TRANSACTION_DELAY );
+        asyncClient.send( ::std::string{ "<body>Data from " ASYNC_CLIENT_NAME "</body>" } );
         ::std::cout << "--" << ::std::endl;
 
-        ::std::this_thread::sleep_for( ::std::chrono::milliseconds(1000) );
-        syncClient.send( ::std::string{ "<body>Data from syncClient</body>" } );
+        ::std::this_thread::sleep_for( TRANSACTION_DELAY );
+        syncClient.send( ::std::string{ "<body>Data from " SYNC_CLIENT_NAME "</body>" } );
         ::std::cout << "--" << ::std::endl;
 
-        ::std::this_thread::sleep_for( ::std::chrono::milliseconds(1000) );
+        ::std::this_thread::sleep_for( TRANSACTION_DELAY );
         server.send< ::std::string >( 
-                    ::std::string{ "asyncClient" },
-                    ::std::string{ "<body>Data for syncClient</body>" } );
+                    ::std::string{ ASYNC_CLIENT_NAME },
+                    ::std::string{ "<body>Data for " ASYNC_CLIENT_NAME "</body>" } );
         ::std::cout << "--" << ::std::endl;
 
-        ::std::this_thread::sleep_for( ::std::chrono::milliseconds(1000) );
+        ::std::this_thread::sleep_for( TRANSACTION_DELAY );
         server.send< ::std::string >( 
-                    ::std::string{ "syncClient" },
-                    ::std::string{ "<body>Data for asyncClient</body>" } );
+                    ::std::string{ SYNC_CLIENT_NAME },
+                    ::std::string{ "<body>Data for " SYNC_CLIENT_NAME "</body>" } );
         ::std::cout << "--" << ::std::endl;
     }
     return 0;

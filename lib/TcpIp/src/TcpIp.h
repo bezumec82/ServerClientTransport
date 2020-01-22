@@ -1,7 +1,9 @@
 #ifndef TCP_IP_H
 #define TCP_IP_H
 
+#include <iostream>
 #include <functional>
+#include <memory>
 
 #include <boost/asio.hpp>
 
@@ -9,16 +11,6 @@
 
 namespace TcpIp
 {
-    /* Used by both : Server and Client */
-    enum class Result // : int8_t
-    {
-        NO_SUCH_CLIENT      = -3,
-        CFG_ERROR           = -2,
-        WRONG_IP_ADDRESS    = -1,
-        ALL_GOOD            = 0,
-        SEND_SUCCESS        = 1,
-    };
-
     class Server; //forward
 
     using byte = uint8_t;
@@ -27,6 +19,7 @@ namespace TcpIp
     using ErrCode = boost::system::error_code;
 
     using Socket = ::boost::asio::ip::tcp::socket;
+    using SocketUptr = ::std::unique_ptr< Socket >;
     using IpAddress = ::boost::asio::ip::address;
     using EndPoint = ::boost::asio::ip::tcp::endpoint;
     using EndPointUptr = ::std::unique_ptr<EndPoint>;
@@ -41,7 +34,24 @@ namespace TcpIp
     using RecvCallBack  = ::std::function< void( ::std::string, Buffer ) >;
     /* How many was really send - POSIX style */
     using SendCallBack  = ::std::function< void( ::std::size_t ) >;
+}
 
+
+namespace TcpIp
+{
+    /*--- Definitions ---*/
+    #define RECV_BUF_SIZE    1024
+
+    /* Used by both : Server and Client */
+    enum class Result // : int8_t
+    {
+        SEND_ERROR          = -4,
+        NO_SUCH_CLIENT      = -3,
+        CFG_ERROR           = -2,
+        WRONG_IP_ADDRESS    = -1,
+        ALL_GOOD            = 0,
+        SEND_SUCCESS        = 4,
+    };
 
     class Server
     { /* Default constructable */
@@ -56,13 +66,14 @@ namespace TcpIp
             /* Can be used directly in async calls */
             RecvCallBack m_recvCallBack; 
             SendCallBack m_sendCallBack;
-            ::std::string m_ipAddress;
+            ::std::string m_address; /* IP address to use */
             uint16_t m_portNum;
         }; //end struct Config
 
     private :
         class Session
         {
+
         public:
             /* Session knows about its parent - class Server */
             Session(IoService& io_service, Server * parent)
@@ -76,7 +87,8 @@ namespace TcpIp
             }
             ::std::string getIp( void )
             {
-                /* TO DO : find better way. Copy ellision not work here. */
+                /* TO DO : find better way. Copy ellision not work here.
+                 * m_socket.remote_endpoint().address().to_string() IS DEPRECATED */
                 ::std::ostringstream address;
                 address << m_socket.remote_endpoint().address();
                 return address.str();
@@ -85,10 +97,10 @@ namespace TcpIp
             void recv( SessionShptr self );
             template< typename Data >
             Result send( Data&& );
+            /*--- Variables ---*/
         private:
             Socket m_socket;
-            Server * m_parent_ptr;
-            #define BUF_SIZE    1024
+            Server * m_parent_ptr;            
         }; //end class Session
 
         /*--- Methods ---*/
@@ -110,18 +122,66 @@ namespace TcpIp
 
         /*--- Variables ---*/
     private :
-        IoService m_ioService; //Server has its own io_service
-        ::std::thread m_worker;
         Config m_config;
         AcceptorUptr m_acceptor_uptr;
         EndPointUptr m_endPoint_uptr;
-        Sessions m_sessions;
-        ::std::atomic<bool> m_isConfigured{false};
+        Sessions m_sessions;        
         IpAddress m_address;
+
+        IoService m_ioService; //Server has its own io_service
+        ::std::thread m_worker;
+
+        /*--- Flags ---*/
+        ::std::atomic< bool > m_isConfigured{ false };
+        ::std::atomic< bool > m_isStarted{ false };
     };
+
+    class Client
+    {
+        /*--- Structures/Classes/enums ---*/
+    public :  
+        struct Config
+        {
+            /* Can be used directly in async calls */
+            RecvCallBack m_recvCallBack; 
+            SendCallBack m_sendCallBack;
+            ::std::string m_address;
+            uint16_t m_portNum;
+        }; //end struct Config
+
+        /*--- Methods ---*/
+    public :
+        Result setConfig( Config&& );
+        Result start( void );
+        template< typename Data >
+        void send( Data&& data );
+        ~Client() 
+        { 
+            if( m_socket_uptr!= nullptr )
+                m_socket_uptr->close(); 
+        }
+    private :
+        void connect( void );
+        void recv( void );
+        /*--- Variables ---*/
+    private :
+        Config m_config;
+        SocketUptr m_socket_uptr;
+        IpAddress m_address;
+        EndPointUptr m_endPoint_uptr;
+
+        IoService m_ioService;
+        ::std::thread m_worker;
+
+        /*--- Flags ---*/
+        ::std::atomic< bool > m_isConfigured{ false };
+        ::std::atomic< bool > m_isConnected{ false };
+    }; //class Client 
+
 }; //end namespace TcpIp
 
 #include "TcpIpServer.hpp"
 #include "TcpIpSession.hpp"
+#include "TcpIpClient.hpp"
 
 #endif /* TCP_IP_H */

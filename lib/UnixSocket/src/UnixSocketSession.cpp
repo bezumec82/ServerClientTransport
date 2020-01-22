@@ -4,8 +4,9 @@ using namespace UnixSocket;
 
 void Server::Session::recv( SessionShptr self )
 {
+
     ::std::string delimiter = "";
-    if( ! m_isAuthenicated.load() )
+    if( ! m_isAuthenticated.load() )
     {
         delimiter = ::std::string{ "</" + m_parent_ptr->getConfig().m_authKey + ">" };
     }
@@ -14,10 +15,12 @@ void Server::Session::recv( SessionShptr self )
         delimiter = ::std::string{ "</" + m_parent_ptr->getConfig().m_delimiter + ">" };
     }
 
+    BufferShPtr readBuf_shptr = ::std::make_shared< Buffer >("");
+    readBuf_shptr->reserve( RECV_BUF_SIZE ); //don't trust boost dynamic allocation
     ::boost::asio::async_read_until( m_socket,
-    ::boost::asio::dynamic_buffer( m_read_buf ),
+    ::boost::asio::dynamic_buffer( * readBuf_shptr ),
     delimiter,
-    [&, self] ( const ErrCode& error, 
+    [&, self, readBuf_shptr] ( const ErrCode& error, 
     ::std::size_t bytes_transferred ) //mutable
     {
         if( error )
@@ -26,13 +29,12 @@ void Server::Session::recv( SessionShptr self )
             m_socket.shutdown( Socket::shutdown_receive );
             return;
         }
-        if( ! m_isAuthenicated.load() )
+        if( ! m_isAuthenticated.load() )
         {
-            authentication( self, m_read_buf );
+            authentication( self, * readBuf_shptr );
         } else { /* Give access to data after authentication. */
-            m_parent_ptr->getConfig().m_recv_cb(m_read_buf);
+            m_parent_ptr->getConfig().m_recvCallBack( m_remoteName, * readBuf_shptr);
         }
-        m_read_buf.clear();
         this->recv( self );
     } ); //end async_read_until
 }
@@ -46,14 +48,14 @@ Result Server::Session::authentication(
     ::std::istringstream xmlStream( inData );
     PropTree::read_xml( xmlStream, xmlTree );
     try {
-        ::std::string key = xmlTree.get<std::string>( m_parent_ptr->getConfig().m_authKey );
+        m_remoteName = xmlTree.get<std::string>( m_parent_ptr->getConfig().m_authKey );
         m_parent_ptr->getAuthSessions().emplace(
             ::std::make_pair(
-                key, 
+                m_remoteName, 
                 self 
         ) );
-        m_isAuthenicated.store(true);
-        PRINTF( GRN, "Client '%s' successfully authenticated.\n", key.c_str() );
+        m_isAuthenticated.store(true);
+        PRINTF( GRN, "Client '%s' successfully authenticated.\n", m_remoteName.c_str() );
         return Result::AUTH_SUCCESS;
     } catch( const ::std::exception& e )
     {

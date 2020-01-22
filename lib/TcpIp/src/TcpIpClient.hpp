@@ -1,9 +1,9 @@
-#ifndef UNIX_SOCKET_CLIENT_HPP
-#define UNIX_SOCKET_CLIENT_HPP
+#ifndef TCP_IP_CLIENT_HPP
+#define TCP_IP_CLIENT_HPP
 
-#include "UnixSocket.h"
+#include "TcpIp.h"
 
-namespace UnixSocket
+namespace TcpIp
 {
 
 template< typename Data >
@@ -28,6 +28,6 @@ void Client::send( Data&& data )
         } );
 }
 
-}
+} //end namespace TcpIp
 
-#endif /* _UNIX_SOCKET_HPP_ */
+#endif /* TCP_IP_CLIENT_HPP */

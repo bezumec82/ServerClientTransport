@@ -9,12 +9,12 @@ Result Client::setConfig( Config&& cfg )
     ERR_CHECK( m_config.m_authKey,      "authentication" );
     ERR_CHECK( m_config.m_delimiter,    "delimiter" );
     ERR_CHECK( m_config.m_clientName,   "client name" );
-    if( ! m_config.m_recv_cb )
+    if( ! m_config.m_recvCallBack )
     {
         PRINT_ERR( "No read callback provided.\n" );
         return Result::CFG_ERROR;
     }
-    if( ! m_config.m_send_cb )
+    if( ! m_config.m_sendCallBack )
     {
         PRINT_ERR( "No send callback provided.\n" );
         return Result::CFG_ERROR;
@@ -36,7 +36,7 @@ Result Client::start( void )
     
     m_socket_uptr = ::std::make_unique< Socket >(m_ioService);
     m_endPoint_uptr = ::std::make_unique< EndPoint >( m_config.m_address );
-    connect(m_config.m_conType);
+    connect();
     m_worker = ::std::move( 
         ::std::thread( [&](){ m_ioService.run(); } )
     );
@@ -44,9 +44,9 @@ Result Client::start( void )
 }
 
 #define CON_RETRY_DELAY ::std::chrono::milliseconds( 500 )
-void Client::connect( ConnectType conType )
+void Client::connect( void )
 {
-    switch( conType )
+    switch( m_config.m_conType )
     {
         case ConnectType::ASYNC_CONNECT :
         {
@@ -83,7 +83,7 @@ void Client::connect( ConnectType conType )
             {
                 /* Delay */
                 ::std::this_thread::sleep_for( CON_RETRY_DELAY );
-                this->connect( ConnectType::SYNC_CONNECT );
+                this->connect();
             }
             break;
         } //end SYNC_CONNECT
@@ -102,26 +102,27 @@ void Client::authenticate( void )
     PropTree::write_xml( xmlStream, xmlTree );
     PRINTF( YEL, "Sending authentication : %s.\n", xmlStream.str().c_str() );
     send( xmlStream.str() );
-
 }
 
 void Client::recv( void )
 {
+    BufferShPtr readBuf_shptr = ::std::make_shared< Buffer >();
+    readBuf_shptr->reserve( RECV_BUF_SIZE );
     ::boost::asio::async_read_until( * m_socket_uptr,
-    ::boost::asio::dynamic_buffer( m_read_buf ),
-    ::std::string{ "</" + m_config.m_delimiter + ">" },
-    [&] ( const ErrCode& error, 
-    ::std::size_t bytes_transferred ) //mutable
-    {
-        if( error )
+        ::boost::asio::dynamic_buffer( * readBuf_shptr ),
+        ::std::string{ "</" + m_config.m_delimiter + ">" },
+        [ &, readBuf_shptr ] ( const ErrCode& error, 
+            ::std::size_t bytes_transferred ) //mutable
         {
-            PRINT_ERR( "Error when reading : %s\n", error.message().c_str());
-            m_socket_uptr->close();
-            return;
-        }
-        m_config.m_recv_cb(m_read_buf);
-        m_read_buf.clear();
-        this->recv();
-    } ); //end async_read_until
+            if( error )
+            {
+                PRINT_ERR( "Error when reading : %s\n", error.message().c_str());
+                m_socket_uptr->shutdown(Socket::shutdown_receive);
+                return;
+            }
+            m_config.m_recvCallBack( "", * readBuf_shptr );
+            this->recv();
+        } ); //end async_read_until
 }
+
 /* EOF */

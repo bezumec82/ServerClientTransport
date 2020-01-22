@@ -9,6 +9,16 @@ namespace UnixSocket
 template< typename Data >
 Result Server::send( const ::std::string& clientName, Data&& data )
 {
+    /* Not sure that this is necessary */
+    if( ! m_isStarted.load() )
+    {
+    #if (0)
+        PRINT_ERR( "Trying to use not started server.\n" );
+        return Result::SEND_ERROR;
+    #else
+        throw ::std::runtime_error( "Trying to use not started server.\n" );
+    #endif
+    }
     /* Client should provide some kind recognition. */
     auto found = m_authSessions.find(clientName);
     if( found != m_authSessions.end() )

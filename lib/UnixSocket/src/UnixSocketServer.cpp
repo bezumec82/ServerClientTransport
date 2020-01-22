@@ -9,12 +9,12 @@ Result Server::setConfig( Config&& cfg )
     ERR_CHECK( m_config.m_authKey,      "authentication");
     ERR_CHECK( m_config.m_delimiter,    "delimiter");
 
-    if( ! m_config.m_recv_cb )
+    if( ! m_config.m_recvCallBack )
     {
         PRINT_ERR( "No read callback provided.\n" );
         return Result::CFG_ERROR;
     }
-    if( ! m_config.m_send_cb )
+    if( ! m_config.m_sendCallBack )
     {
         PRINT_ERR( "No send callback provided.\n" );
         return Result::CFG_ERROR;
@@ -39,6 +39,7 @@ Result Server::start( void )
     m_worker = ::std::move(
         ::std::thread( [&](){ m_ioService.run(); } )
     );
+    m_isStarted.store( true );
     return Result::ALL_GOOD;
 }
 

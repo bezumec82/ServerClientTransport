@@ -28,30 +28,36 @@ namespace UnixSocket
     using IoService     = ::boost::asio::io_service;
     using ErrCode       = ::boost::system::error_code;
 
+    using Socket        = ::boost::asio::local::stream_protocol::socket;
+    using SocketUptr    = ::std::unique_ptr< Socket >;
     using EndPoint      = ::boost::asio::local::stream_protocol::endpoint;
     using EndPointUptr  = ::std::unique_ptr< EndPoint >;
     using Acceptor      = ::boost::asio::local::stream_protocol::acceptor;
     using AcceptorUptr  = ::std::unique_ptr< Acceptor >;
 
-    using Tree = ::boost::property_tree::ptree;
+    using Buffer = ::std::string;
+    using BufferShPtr = ::std::shared_ptr< Buffer >;
 
-    using Socket        = ::boost::asio::local::stream_protocol::socket;
-    using SocketUptr    = ::std::unique_ptr< Socket >;
-    using RecvCallBack  = ::std::function< void( ::std::string ) >;
+    using Tree = ::boost::property_tree::ptree;
+    /*                                           Who :          What : */ 
+    using RecvCallBack  = ::std::function< void( ::std::string, Buffer ) >;
     using SendCallBack  = ::std::function< void( ::std::size_t ) >;
 }
 
 namespace UnixSocket
 {
+    /*--- Definitions ---*/
+    #define RECV_BUF_SIZE    1024
 
     enum class Result //: int8_t
     {
-        AUTH_FAILURE    = -3,
+        AUTH_FAILURE    = -4,
+        SEND_ERROR      = -3,
         NO_SUCH_ADDRESS = -2,
         CFG_ERROR       = -1,
         ALL_GOOD        = 0,
-        SEND_SUCCESS    = 1,
-        AUTH_SUCCESS    = 2,
+        SEND_SUCCESS    = 3,
+        AUTH_SUCCESS    = 4,
     }; //end class Result
 
     class Server /* Default constructable */
@@ -64,8 +70,8 @@ namespace UnixSocket
     public :
         struct Config
         {
-            RecvCallBack    m_recv_cb;
-            SendCallBack    m_send_cb;
+            RecvCallBack    m_recvCallBack;
+            SendCallBack    m_sendCallBack;
             ::std::string   m_address; //address of server in the file system
             ::std::string   m_delimiter;
                 /* Each message should have some kind of start-end sequence :
@@ -106,11 +112,14 @@ namespace UnixSocket
             IoService& m_ioService_ref;
             Socket m_socket;
             Server * m_parent_ptr;
-            ::std::string m_read_buf;
-            ::std::atomic< bool > m_isAuthenicated{ false };
+            ::std::atomic< bool > m_isAuthenticated{ false };
+            ::std::string m_remoteName; /* Name of the connected client */
+            /*--- Flags ---*/
+
         }; /* end class Session */
 
-    public : /* Interface */
+        /*--- Methods ---*/
+    public :
         /* Getters and Setters */
         Result setConfig ( Config && cfg );
         Config& getConfig( void )
@@ -124,17 +133,19 @@ namespace UnixSocket
         Result start( void );
         template< typename Data >
         Result send( const ::std::string& clientName, Data&& data );
-
     private :
         void accept( void );
     
-    private : /* Variables */
+        /*--- Variables ---*/
+    private : 
         Config m_config;
         IoService m_ioService; /* Initialized with class creation */
         AcceptorUptr m_acceptor_uptr;
         Sessions m_sessions; /* Server should know about all opened sessions */
         AuthSessions m_authSessions;
         ::std::thread m_worker;
+        /*--- Flags ---*/
+        ::std::atomic< bool > m_isStarted{ false };
         ::std::atomic< bool > m_isConfigured { false };
     }; //end class Server
 
@@ -151,8 +162,8 @@ namespace UnixSocket
 
         struct Config
         {
-            RecvCallBack    m_recv_cb;
-            SendCallBack    m_send_cb;
+            RecvCallBack    m_recvCallBack;
+            SendCallBack    m_sendCallBack;
             ::std::string   m_address; //file to connect to
             ::std::string   m_delimiter; //look 'Server::Config'
 
@@ -161,6 +172,8 @@ namespace UnixSocket
             ::std::string   m_clientName;
             ConnectType     m_conType;
         };
+        /*--- Methods ---*/
+    public :
         Result setConfig( Config&& );
         Result start( void );
 
@@ -168,18 +181,24 @@ namespace UnixSocket
         void send( Data&& data );
         ~Client() { m_socket_uptr->close(); }
     private :
-        void connect( ConnectType );
+        void connect();
         void recv( void );
         void authenticate( void );
-    private : /* Variables */
+        /*--- Variables ---*/
+    private :
+
         Config m_config;
         SocketUptr m_socket_uptr;
         EndPointUptr m_endPoint_uptr;
-        ::std::atomic< bool > m_isConfigured{ false };
-        ::std::atomic<bool> m_isConnected{ false };
+        
         IoService m_ioService;
         ::std::thread m_worker;
+
         ::std::string m_read_buf;
+
+        /*--- Flags ---*/
+        ::std::atomic< bool > m_isConfigured{ false };
+        ::std::atomic<bool> m_isConnected{ false };
     }; //end class client
 }
 

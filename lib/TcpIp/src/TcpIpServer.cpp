@@ -7,7 +7,7 @@ Result TcpIp::Server::setConfig( Config&& cfg ) /* Save config */
     boost::system::error_code error;
     m_config = ::std::move( cfg ); //by-member move
 
-    if( m_config.m_ipAddress == "" )
+    if( m_config.m_address == "" )
     {
         PRINT_ERR( "No IP address provided.\n" );
         return Result::CFG_ERROR;
@@ -23,14 +23,14 @@ Result TcpIp::Server::setConfig( Config&& cfg ) /* Save config */
         return Result::CFG_ERROR;
     }
     m_address = 
-        boost::asio::ip::make_address( m_config.m_ipAddress, error );
+        boost::asio::ip::make_address( m_config.m_address, error );
     if( error )
     {
         PRINT_ERR( "%s", error.message().c_str() );
         return Result::WRONG_IP_ADDRESS;
     }
 
-    m_isConfigured.store(true);
+    m_isConfigured.store( true );
     PRINTF( GRN, "Configuration is accepted.\n" );
     return Result::ALL_GOOD;
 }
@@ -41,10 +41,9 @@ Result TcpIp::Server::start( void )
     {
         PRINT_ERR( "Server has no configuration.\n" );
         return Result::CFG_ERROR;
-    }
+    }    
     m_endPoint_uptr = ::std::make_unique<EndPoint>( m_address, m_config.m_portNum );
     m_acceptor_uptr = ::std::make_unique<Acceptor>( m_ioService, * m_endPoint_uptr );
-
     accept();
     /* TO DO : make several threads for one 'io_service' */
     m_worker = ::std::move( ::std::thread(
@@ -52,6 +51,7 @@ Result TcpIp::Server::start( void )
                 { 
                     m_ioService.run(); 
                 } /* lambda */ )/* thread */ )/* move */;
+    m_isStarted.store( true );
     return Result::ALL_GOOD;
 }
 
@@ -71,7 +71,7 @@ void TcpIp::Server::accept( void )
             else
             {
                 PRINT_ERR( "Error when accepting : %s\n", error.message().c_str());
-            }
+            } //end if
         } /* lambda */ )/* async_accept */;
 }
 

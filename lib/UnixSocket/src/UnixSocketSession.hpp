@@ -17,7 +17,7 @@ void Server::Session::send( Data&& data )
         {
             if (!error)
             {
-                m_parent_ptr->getConfig().m_send_cb( bytes_transferred );
+                m_parent_ptr->getConfig().m_sendCallBack( bytes_transferred );
                 PRINTF( GRN, "%lu bytes is sent.\n", bytes_transferred );
             }
             else

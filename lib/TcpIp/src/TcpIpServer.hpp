@@ -9,6 +9,12 @@ namespace TcpIp
 template< typename Data >
 Result Server::send( const ::std::string& address, Data&& data )
 {
+    if( ! m_isStarted.load() )
+    {
+        PRINT_ERR( "Trying to use not started server.\n" );
+        throw ::std::runtime_error( "Trying to use not started server.\n" );
+        return Result::SEND_ERROR;
+    }
     /* Hash will be better here : use 'unordered_map' */
     for( const auto & it : m_sessions )
     {
