@@ -18,12 +18,16 @@ void Client::send( Data&& data )
         {
             if ( !error )
             {
-                m_config.m_sendCallBack( bytes_transferred );
+                m_config.m_send_cb( bytes_transferred );
                 PRINTF( GRN, "%lu bytes is sent.\n", bytes_transferred );
             }
             else
             {
                 PRINT_ERR( "Error when writing : %s\n", error.message().c_str() );
+                if( m_socket_uptr->is_open() )
+                {
+                    m_socket_uptr->shutdown( Socket::shutdown_receive );
+                }
             }
         } );
 }

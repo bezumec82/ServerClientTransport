@@ -59,10 +59,10 @@ int main( int, char** )
     ::TcpIp::Server server;
     ::TcpIp::Server::Config serverConfig = 
     {
-        .m_recvCallBack = serverReadCallBack,
-        .m_sendCallBack = serverSendCallBack,
+        .m_recv_cb = serverReadCallBack,
+        .m_send_cb = serverSendCallBack,
         .m_address      = LOCAL_HOST_IP,
-        .m_portNum      = PORT_TO_USE,
+        .m_port_num      = PORT_TO_USE,
     };
     server.setConfig( ::std::move( serverConfig ) );
     server.start();
@@ -70,10 +70,10 @@ int main( int, char** )
     ::TcpIp::Client client;
     ::TcpIp::Client::Config clientConfig = 
     {
-        .m_recvCallBack = clientReadCallBack,
-        .m_sendCallBack = clientSendCallBack,
+        .m_recv_cb = clientReadCallBack,
+        .m_send_cb = clientSendCallBack,
         .m_address      = LOCAL_HOST_IP,
-        .m_portNum      = PORT_TO_USE,
+        .m_port_num      = PORT_TO_USE,
     };
     client.setConfig( ::std::move( clientConfig ) );
     client.start();

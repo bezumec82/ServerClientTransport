@@ -9,18 +9,18 @@ namespace TcpIp
 template< typename Data >
 Result Server::send( const ::std::string& address, Data&& data )
 {
-    if( ! m_isStarted.load() )
+    if( ! m_is_started.load() )
     {
         PRINT_ERR( "Trying to use not started server.\n" );
         throw ::std::runtime_error( "Trying to use not started server.\n" );
         return Result::SEND_ERROR;
     }
     /* Hash will be better here : use 'unordered_map' */
-    for( const auto & it : m_sessions )
+    for( auto & it : m_sessions )
     {
-        if ( it->getIp() == address )
+        if ( it.getIp() == address )
         {
-            it->send( ::std::forward<Data>(data) ); //perfect forwarding
+            it.send( ::std::forward<Data>(data) ); //perfect forwarding
             return Result::SEND_SUCCESS; 
         }
     } //end for

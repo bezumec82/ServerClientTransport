@@ -93,8 +93,7 @@ namespace UnixSocket
         {
         public : /*--- Methods ---*/
             Session( IoService& io_service, Server * parent )
-                : m_io_service_ref( io_service ),
-                m_socket( io_service ),
+                : m_socket( io_service ),
                 m_parent_ptr( parent )
             { }
 
@@ -102,7 +101,7 @@ namespace UnixSocket
             {
                 return m_socket;
             }
-            void recv();
+            void recv( void );
             Result identification( const ::std::string& );
             template< typename Data >
             void send( Data&& );
@@ -112,7 +111,6 @@ namespace UnixSocket
             }
             ~Session();
         private : /*--- Variables ---*/
-            IoService& m_io_service_ref;
             Socket m_socket;
             Server * m_parent_ptr;
             ::std::string m_read_buf;
@@ -147,10 +145,10 @@ namespace UnixSocket
 
     private : /*--- Variables ---*/
         Config m_config;
-        IoService m_io_service; /* Initialized with class creation */
         AcceptorUptr m_acceptor_uptr;
         Sessions m_sessions; /* Server should know about all opened sessions */
         IdentifiedSessions m_id_sessions_map;
+        IoService m_io_service; /* Initialized with class creation */
         ::std::thread m_worker;
         /*--- Flags ---*/
         ::std::atomic< bool > m_is_configured{ false };

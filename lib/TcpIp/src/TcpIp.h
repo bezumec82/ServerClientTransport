@@ -4,6 +4,7 @@
 #include <iostream>
 #include <functional>
 #include <memory>
+#include <list>
 
 #include <boost/asio.hpp>
 
@@ -57,24 +58,25 @@ namespace TcpIp
     { /* Default constructable */
     class Session;
     using SessionShptr = ::std::shared_ptr< Session >;
-    using Sessions = ::std::vector< SessionShptr >;
+    //using Sessions = ::std::vector< SessionShptr >;
+    using Sessions = ::std::list< Session >;
+    using SessionHandle = Sessions::iterator;
 
     /*--- Structures/Classes/Enums ---*/
     public :    
         struct Config
         {
             /* Can be used directly in async calls */
-            RecvCallBack m_recvCallBack; 
-            SendCallBack m_sendCallBack;
-            ::std::string m_address; /* IP address to use */
-            uint16_t m_portNum;
+            RecvCallBack    m_recv_cb; 
+            SendCallBack    m_send_cb;
+            ::std::string   m_address; /* IP address to use */
+            uint16_t        m_port_num;
         }; //end struct Config
 
     private :
         class Session
         {
-
-        public:
+        public: /*--- Methods ---*/
             /* Session knows about its parent - class Server */
             Session(IoService& io_service, Server * parent)
                 : m_socket( io_service ),
@@ -93,18 +95,22 @@ namespace TcpIp
                 address << m_socket.remote_endpoint().address();
                 return address.str();
             }
+            void saveHandle( SessionHandle self )
+            {
+                m_self = self;
+            }
             /* Taking self to prevent destruction shared ptr */
-            void recv( SessionShptr self );
+            void recv( void );
             template< typename Data >
             Result send( Data&& );
-            /*--- Variables ---*/
-        private:
+            ~Session();      
+        private:  /*--- Variables ---*/
             Socket m_socket;
-            Server * m_parent_ptr;            
+            Server * m_parent_ptr;
+            SessionHandle m_self;
         }; //end class Session
 
-        /*--- Methods ---*/
-    public:
+    public : /*--- Methods ---*/
         Result setConfig( Config&& );
         Config& getConfig( void )
         {
@@ -119,38 +125,34 @@ namespace TcpIp
         void accept( void );
         /* Maybe useful */
         void closeAllSessions( void );
-
-        /*--- Variables ---*/
-    private :
+        
+    private : /*--- Variables ---*/
         Config m_config;
         AcceptorUptr m_acceptor_uptr;
-        EndPointUptr m_endPoint_uptr;
+        EndPointUptr m_endpoint_uptr;
         Sessions m_sessions;        
         IpAddress m_address;
 
-        IoService m_ioService; //Server has its own io_service
+        IoService m_io_service; //Server has its own io_service
         ::std::thread m_worker;
-
         /*--- Flags ---*/
-        ::std::atomic< bool > m_isConfigured{ false };
-        ::std::atomic< bool > m_isStarted{ false };
+        ::std::atomic< bool > m_is_configured{ false };
+        ::std::atomic< bool > m_is_started{ false };
     };
 
     class Client
     {
-        /*--- Structures/Classes/enums ---*/
-    public :  
+    public : /*--- Structures/Classes/enums ---*/
         struct Config
         {
             /* Can be used directly in async calls */
-            RecvCallBack m_recvCallBack; 
-            SendCallBack m_sendCallBack;
+            RecvCallBack m_recv_cb; 
+            SendCallBack m_send_cb;
             ::std::string m_address;
-            uint16_t m_portNum;
+            uint16_t m_port_num;
         }; //end struct Config
 
-        /*--- Methods ---*/
-    public :
+    public : /*--- Methods ---*/
         Result setConfig( Config&& );
         Result start( void );
         template< typename Data >
@@ -163,19 +165,17 @@ namespace TcpIp
     private :
         void connect( void );
         void recv( void );
-        /*--- Variables ---*/
-    private :
+        
+    private : /*--- Variables ---*/
         Config m_config;
         SocketUptr m_socket_uptr;
         IpAddress m_address;
-        EndPointUptr m_endPoint_uptr;
-
-        IoService m_ioService;
+        EndPointUptr m_endpoint_uptr;
+        IoService m_io_service;
         ::std::thread m_worker;
-
         /*--- Flags ---*/
-        ::std::atomic< bool > m_isConfigured{ false };
-        ::std::atomic< bool > m_isConnected{ false };
+        ::std::atomic< bool > m_is_configured{ false };
+        ::std::atomic< bool > m_is_connected{ false };
     }; //class Client 
 
 }; //end namespace TcpIp

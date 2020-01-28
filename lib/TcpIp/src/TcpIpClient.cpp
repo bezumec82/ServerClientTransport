@@ -12,12 +12,12 @@ Result TcpIp::Client::setConfig( Config&& cfg ) /* Save config */
         PRINT_ERR( "No IP address provided.\n" );
         return Result::CFG_ERROR;
     }
-    if( ! m_config.m_recvCallBack ) //not contains function
+    if( ! m_config.m_recv_cb ) //not contains function
     {
         PRINT_ERR( "No read callback provided.\n" );
         return Result::CFG_ERROR;
     }
-    if( ! m_config.m_sendCallBack )
+    if( ! m_config.m_send_cb )
     {
         PRINT_ERR( "No send callback provided.\n" );
         return Result::CFG_ERROR;
@@ -30,14 +30,14 @@ Result TcpIp::Client::setConfig( Config&& cfg ) /* Save config */
         return Result::WRONG_IP_ADDRESS;
     }
 
-    m_isConfigured.store(true);
+    m_is_configured.store(true);
     PRINTF( GRN, "Configuration is accepted.\n" );
     return Result::ALL_GOOD;
 }
 
 Result Client::start( void )
 {
-    if( ! m_isConfigured.load() )
+    if( ! m_is_configured.load() )
     {
     #if (0)
         PRINT_ERR( "Server has no configuration.\n" );
@@ -49,11 +49,11 @@ Result Client::start( void )
     ::std::cout << "Starting TcpIp client. Server address : " 
                 << m_config.m_address <<::std::endl;
     
-    m_socket_uptr = ::std::make_unique< Socket >(m_ioService);
-    m_endPoint_uptr = ::std::make_unique<EndPoint>( m_address, m_config.m_portNum ); //::tcp::ip::address here
+    m_socket_uptr = ::std::make_unique< Socket >(m_io_service);
+    m_endpoint_uptr = ::std::make_unique<EndPoint>( m_address, m_config.m_port_num ); //::tcp::ip::address here
     connect();
     m_worker = ::std::move( 
-        ::std::thread( [&](){ m_ioService.run(); } )
+        ::std::thread( [&](){ m_io_service.run(); } )
     );
     return Result::ALL_GOOD;
 }
@@ -62,15 +62,15 @@ Result Client::start( void )
 void Client::connect()
 {
     try {
-        m_socket_uptr->connect( * m_endPoint_uptr );
+        m_socket_uptr->connect( * m_endpoint_uptr );
         PRINTF( GRN, "Successfully connected to the server '%s'.\n", 
-                m_endPoint_uptr->address().to_string().c_str() );
-        m_isConnected.store( true );
+                m_endpoint_uptr->address().to_string().c_str() );
+        m_is_connected.store( true );
         this->recv();
     } catch( const ::std::exception& e ) {
         PRINT_ERR( "%s.\n", e.what() );
     }
-    if( ! m_isConnected.load() ) //try again
+    if( ! m_is_connected.load() ) //try again
     {
         /* Delay */
         ::std::this_thread::sleep_for( CON_RETRY_DELAY );
@@ -90,10 +90,13 @@ void Client::recv( void )
             if( error )
             {
                 PRINT_ERR( "Error when reading : %s\n", error.message().c_str());
-                m_socket_uptr->shutdown(Socket::shutdown_receive);
+                if( m_socket_uptr->is_open() )
+                {
+                    m_socket_uptr->shutdown( Socket::shutdown_receive );
+                }
                 return;
             }
-            m_config.m_recvCallBack( "", * readBuf_shptr );
+            m_config.m_recv_cb( "", * readBuf_shptr );
             this->recv();
         } ); //end async_read_until
 }
