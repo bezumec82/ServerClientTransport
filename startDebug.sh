@@ -16,14 +16,19 @@ export GDB_PORT=2345
 
 export EXECTBL=$1
 
-echo -e "${CYN}Copying '${EXECTBL}' to the Raspberry : ${TGT_EXE_PTH}.${NORM}"
+if [ ! $EXECTBL ]; then
+    echo -e "${RED} Executable name to debug doesn't passed.${NORM}"
+    exit 1
+fi
+
+echo -e "${CYN}Copying '${PWD}/${EXECTBL}' to the Raspberry : ${TGT_EXE_PTH}.${NORM}"
 sshpass -p "${RMT_HOST_PASS}" \
-scp ${PROJECT_PTH}/out/${EXECTBL} ${RMT_HOST}:${TGT_EXE_PTH}/${EXECTBL}
+scp ${PWD}/${EXECTBL} ${RMT_HOST}:${TGT_EXE_PTH}/`basename ${EXECTBL}`
 
 echo -e "${GRN}Starting GDB server with port ${GDB_PORT}${NORM}"
 sshpass -p "${RMT_HOST_PASS}" ssh -tt ${RMT_HOST} << EOF
-killall -9 gdbserver && killall -9 gdbserver
-gdbserver :${GDB_PORT} ${TGT_EXE_PTH}/${EXECTBL}
+    killall -9 gdbserver && killall -9 gdbserver
+    gdbserver :${GDB_PORT} ${TGT_EXE_PTH}/`basename ${EXECTBL}`
 EOF
 
 echo -e "${MAG}Start this script : \nstartDebug.sh executAble.out${NORM}"

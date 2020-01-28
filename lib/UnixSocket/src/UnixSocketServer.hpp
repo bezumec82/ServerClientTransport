@@ -5,23 +5,14 @@
 
 namespace UnixSocket
 {
+
 /* Wrapper around 'Session.send' */
 template< typename Data >
-Result Server::send( const ::std::string& clientName, Data&& data )
+Result Server::send( const ::std::string& client_name, Data&& data )
 {
-    /* Not sure that this is necessary */
-    if( ! m_isStarted.load() )
-    {
-    #if (0)
-        PRINT_ERR( "Trying to use not started server.\n" );
-        return Result::SEND_ERROR;
-    #else
-        throw ::std::runtime_error( "Trying to use not started server.\n" );
-    #endif
-    }
     /* Client should provide some kind recognition. */
-    auto found = m_authSessions.find(clientName);
-    if( found != m_authSessions.end() )
+    auto found = m_id_sessions_map.find( client_name );
+    if( found != m_id_sessions_map.end() )
     {
         /* Underlaying class is Session */
         found->second->send(::std::forward<Data>(data) );
@@ -29,10 +20,11 @@ Result Server::send( const ::std::string& clientName, Data&& data )
     }
     else
     {
-        PRINT_ERR( "No such client : %s.\n", clientName.c_str() );
+        PRINT_ERR( "No such client : %s.\n", client_name.c_str() );
         return Result::NO_SUCH_ADDRESS;
     }
 }
+
 } //end namespace UnixSocket
 
 #endif /* UNXI_SOCKET_SERVER_HPP */

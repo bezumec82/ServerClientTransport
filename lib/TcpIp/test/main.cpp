@@ -53,7 +53,6 @@ void sigIngHandler ( int signal )
 #define PORT_TO_USE         2000
 #define TRANSACTION_DELAY   ::std::chrono::milliseconds(1000)
 
-
 int main( int, char** )
 {
 
@@ -90,12 +89,11 @@ int main( int, char** )
         /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
         /* !!!Make human readable authentication as in UnixServer!!! */
         /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-        
+
         ::std::this_thread::sleep_for( TRANSACTION_DELAY );
         server.send< ::std::string >( 
                     ::std::string{ LOCAL_HOST_IP },
                     ::std::string{ "DATA_TO_CLIENT" } );
         ::std::cout << "--" << ::std::endl;
-
     }
 }

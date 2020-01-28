@@ -32,7 +32,6 @@ echo -e "${RED} Boost is not found at : ${BOOST_ROOT}${NORM}"
 exit 1
 fi
 
-
 echo -e "${CYN}Project is located at : ${PROJECT_PTH}${NORM}"
 
 if [ -d "${PROJECT_PTH}/build" ]; then
