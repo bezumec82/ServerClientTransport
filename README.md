@@ -1,7 +1,7 @@
 ### Agenda
 This library is the implementation of transports for RPi.
 The idea behind library is to hide 'boost' library from client code completely.
-In all cases 'send' is the call that user does, and receive as truly asyncronous event calls for callback provided by user.
+In all cases 'send' is the call that user does, and receive as truly asynchronous event calls for callback provided by user.
 
 ### Compilation
 Script 'build.sh' is building project using necessary GCC. 
@@ -16,7 +16,7 @@ Name of the executable (without path) should be passed as sole argument to the '
 
 Inside 'build.sh', there are variables that provides path to some necessary facilities :
 
-RPI_PTH - where everething is places.
+RPI_PTH - where everything is places.
 
 PRI_TOOLS_PTH - path to compiler and sysroot.
 

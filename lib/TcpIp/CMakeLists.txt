@@ -1,10 +1,12 @@
-cmake_minimum_required( VERSION 2.6 )
-set( PROJECT_NAME TcpIp )
+cmake_minimum_required( VERSION 3.14 )
+
+project( TcpIp LANGUAGES CXX )
+
 ###########
 ### Library
 ###########
-message( "Preparing library : " ${PROJECT_NAME} )
-file(GLOB CPP_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+message( "${CYN}Configuring library : ${PROJECT_NAME}${NOMR}" )
+file( GLOB CPP_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp )
 add_library(
     ${PROJECT_NAME}
 STATIC
@@ -25,14 +27,20 @@ LINK_PRIVATE
 ########
 ### Test
 ########
-message( "Preparing executable : " ${PROJECT_NAME}Test.out )
+message( "${MAG}Configuring test : ${PROJECT_NAME}Test.out${NORM}" )
+include_directories( ${Boost_INCLUDE_DIRS} )
+message( "${BLU}Boost headers : ${Boost_INCLUDE_DIRS}${NORM}" )
+message( "${BLU}Located boost compiled libs : ${Boost_LIBRARIES}${NORM}" )
+
+file( GLOB CXX_FILES ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp )
 add_executable(
     ${PROJECT_NAME}Test.out 
-    ${CMAKE_CURRENT_SOURCE_DIR}/test/main.cpp 
+    ${CXX_FILES}
 )
 target_link_libraries (
     ${PROJECT_NAME}Test.out
 LINK_PRIVATE
     ${PROJECT_NAME}
     Tools
+    ${Boost_LIBRARIES}
 )
