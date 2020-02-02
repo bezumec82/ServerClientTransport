@@ -27,4 +27,4 @@ Name of the executable (without path) should be passed as sole argument to the `
 Look for RPi tools source here : [raspberry-tools](https://github.com/raspberrypi/tools).
 
 ### Submodules :
-[Tools](git@github.com:bezumec82/Tools.git)
+[Tools](https://github.com/bezumec82/Tools.git)
