@@ -1,3 +1,6 @@
 [submodule "lib/Tools"]
 	path = lib/Tools
 	url = git@github.com:bezumec82/Tools.git
+[submodule "lib/UnixSocketTransport"]
+	path = lib/UnixSocketTransport
+	url = git@github.com:bezumec82/UnixSocketTransport.git
