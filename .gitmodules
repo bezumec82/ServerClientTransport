@@ -4,3 +4,6 @@
 [submodule "lib/UnixSocketTransport"]
 	path = lib/UnixSocketTransport
 	url = git@github.com:bezumec82/UnixSocketTransport.git
+[submodule "lib/TcpIpTransport"]
+	path = lib/TcpIpTransport
+	url = git@github.com:bezumec82/TcpIpTransport.git
